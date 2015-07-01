@@ -21,7 +21,14 @@
 	class WP_API_JSON_Import {
 
 		/**
-		 * Pluglin Slug
+		 * Plugin version.
+		 *
+		 * @var string
+		 */
+		const VERSION = '1.0.0';
+
+		/**
+		 * Plugin Slug
 		 * @var strng
 		 */
 		public static $plugin_slug = 'wpapijson-import';
@@ -84,7 +91,7 @@
 				echo '<p>' . __( 'Enter the url\'s, separated by commas, to import.', self::$plugin_slug ) . '</p>';
 				echo '<hr />';
 				echo '<textarea name=" ' . self::$plugin_slug . '_urls" class="' . self::$plugin_slug . '_textarea"></textarea>';
-				echo '<input type="submit" class="' . self::$plugin_slug . '_botao">';
+				echo '<input type="submit" class="' . self::$plugin_slug . '_botao button button-primary button-large">';
 			echo '</div>';
 		}
 	}
