@@ -63,7 +63,7 @@
 		 * @return void
 		 */
 		public function load_plugin_textdomain() {
-			load_plugin_textdomain( $this->plugin_slug, false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+			load_plugin_textdomain( self::$plugin_slug, false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
 		}
 
 		/**
@@ -72,7 +72,7 @@
 		 * @return void
 		 */
 		public function add_menu_page() {
-			add_menu_page( 'WP API JSON Import', 'WP API JSON Import', 'manage_options', $this->plugin_slug, array( $this, 'import_posts' ), '', 6 );
+			add_menu_page( 'WP API JSON Import', 'WP API JSON Import', 'manage_options', self::$plugin_slug, array( $this, 'import_posts' ), '', 6 );
 		}
 
 		/**
@@ -80,7 +80,11 @@
 		 */
 		public function import_posts() {
 			echo '<div class="wrap">';
-				echo '<h2>' . __( 'WP API JSON Import', $this->plugin_slug ) . '</h2>';
+				echo '<h2>' . __( 'WP API JSON Import', self::$plugin_slug ) . '</h2>';
+				echo '<p>' . __( 'Enter the url\'s, separated by commas, to import.', self::$plugin_slug ) . '</p>';
+				echo '<hr />';
+				echo '<textarea name=" ' . self::$plugin_slug . '_urls" class="' . self::$plugin_slug . '_textarea"></textarea>';
+				echo '<input type="submit" class="' . self::$plugin_slug . '_botao">';
 			echo '</div>';
 		}
 	}
