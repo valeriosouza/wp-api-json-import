@@ -65,6 +65,52 @@
 		}
 
 		/**
+		 * Fired when the plugin is activated.
+		 *
+		 * @param  boolean $network_wide True if WPMU superadmin uses
+		 *                               "Network Activate" action, false if
+		 *                               WPMU is disabled or plugin is
+		 *                               activated on an individual blog.
+		 *
+		 * @return void
+		 */
+		public static function activate( $network_wide ) {
+			if ( function_exists( 'is_multisite' ) && is_multisite() ) {
+				if ( $network_wide  ) {
+
+					// Get all blog ids
+					$blog_ids = self::get_blog_ids();
+
+					foreach ( $blog_ids as $blog_id ) {
+						switch_to_blog( $blog_id );
+						self::single_activate();
+					}
+
+					restore_current_blog();
+				} else {
+					self::single_activate();
+				}
+			} else {
+				self::single_activate();
+			}
+		}
+
+		/**
+		 * Fired when a new site is activated with a WPMU environment.
+		 *
+		 * @param    int    $blog_id    ID of the new blog.
+		 */
+		public function activate_new_site( $blog_id ) {
+			if ( 1 !== did_action( 'wpmu_new_blog' ) ) {
+				return;
+			}
+
+			switch_to_blog( $blog_id );
+			self::single_activate();
+			restore_current_blog();
+		}
+
+		/**
 		 * Load the plugin text domain for translation.
 		 *
 		 * @return void
