@@ -56,6 +56,12 @@
 			// Function AJAX impot posts
     		add_action( 'wp_ajax_import_posts', array( $this, 'import_posts' ) );
     		add_action( 'wp_ajax_nopriv_import_posts', array( $this, 'import_posts' ) );
+
+
+    		// Load Importer API
+			require_once ABSPATH . 'wp-admin/includes/import.php';
+			$GLOBALS['wp_rest_import'] = new WP_API_JSON_Import();
+    		register_importer('wpapijsonimport', __('WP API JSON Import', 'wpapijson-import'), __('Import links in OPML format.', 'wpapijson-import'), array($GLOBALS['wp_rest_import'], 'dispatch'));
 		}
 
 		/**
