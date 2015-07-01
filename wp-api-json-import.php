@@ -74,6 +74,21 @@
 		}
 
 		/**
+		 * Fired for each blog when the plugin is activated.
+		 *
+		 * @return   void
+		 */
+
+		private static function single_activate() {
+			if ( ! current_user_can( 'activate_plugins' ) ) {
+				return;
+			}
+			add_option( 'wpapijson_import', $options );
+			add_option( 'wpapijson_import_version', self::VERSION );
+
+		}
+
+		/**
 		 * Add Menu Page
 		 * 
 		 * @return void
