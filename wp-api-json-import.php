@@ -21,7 +21,14 @@
 	class WP_API_JSON_Import {
 
 		/**
-		 * Pluglin Slug
+		 * Plugin version.
+		 *
+		 * @var string
+		 */
+		const VERSION = '1.0.0';
+
+		/**
+		 * Plugin Slug
 		 * @var strng
 		 */
 		public static $plugin_slug = 'wpapijson-import';
@@ -65,6 +72,52 @@
 		}
 
 		/**
+		 * Fired when the plugin is activated.
+		 *
+		 * @param  boolean $network_wide True if WPMU superadmin uses
+		 *                               "Network Activate" action, false if
+		 *                               WPMU is disabled or plugin is
+		 *                               activated on an individual blog.
+		 *
+		 * @return void
+		 */
+		public static function activate( $network_wide ) {
+			if ( function_exists( 'is_multisite' ) && is_multisite() ) {
+				if ( $network_wide  ) {
+
+					// Get all blog ids
+					$blog_ids = self::get_blog_ids();
+
+					foreach ( $blog_ids as $blog_id ) {
+						switch_to_blog( $blog_id );
+						self::single_activate();
+					}
+
+					restore_current_blog();
+				} else {
+					self::single_activate();
+				}
+			} else {
+				self::single_activate();
+			}
+		}
+
+		/**
+		 * Fired when a new site is activated with a WPMU environment.
+		 *
+		 * @param    int    $blog_id    ID of the new blog.
+		 */
+		public function activate_new_site( $blog_id ) {
+			if ( 1 !== did_action( 'wpmu_new_blog' ) ) {
+				return;
+			}
+
+			switch_to_blog( $blog_id );
+			self::single_activate();
+			restore_current_blog();
+		}
+
+		/**
 		 * Load the plugin text domain for translation.
 		 *
 		 * @return void
@@ -90,6 +143,19 @@
 			wp_localize_script( self::$plugin_slug . '_js_main', 'sale_post_variables', $params );
 		}
 
+		 /**
+		 * Fired for each blog when the plugin is activated.
+		 *
+		 * @return   void
+		 */
+		private static function single_activate() {
+			if ( ! current_user_can( 'activate_plugins' ) ) {
+				return;
+			}
+			add_option( 'wpapijson_import', $options );
+			add_option( 'wpapijson_import_version', self::VERSION );
+		}
+
 		/**
 		 * Add Menu Page
 		 * 
@@ -106,15 +172,15 @@
 			echo '<div class="wrap">';
 				echo '<h2>' . __( 'WP API JSON Import', self::$plugin_slug ) . '</h2>';
 				echo '<p>' . __( 'Enter the url\'s, separated by commas, to import.', self::$plugin_slug ) . '</p>';
+
 				echo '<textarea name="' . self::$plugin_slug . '_urls" rows="5" cols="40" class="' . self::$plugin_slug . '_textarea wp-editor-area"></textarea>';
 				echo '<input type="submit" class="' . self::$plugin_slug . '_botao button button-primary">';
-				
+
 				echo '<div class="' . self::$plugin_slug . '_wraper_posts_imports">';
 					echo '<hr />';
 					echo '<h3>' . __( 'Posts Imported', self::$plugin_slug ) . '</h3>';
 					echo '<div class="' . self::$plugin_slug . '_posts_import"></div>';
 				echo '</div>';
-
 			echo '</div>';
 		}
 
