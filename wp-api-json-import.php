@@ -40,8 +40,15 @@
 			// Load plugin text domain
 			add_action( 'plugins_loaded', array( $this, 'load_plugin_textdomain' ) );
 
+			// Load scripts js and styles css
+			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+
 			// Add menu page
 			add_action( 'admin_menu', array( $this, 'add_menu_page') );
+
+			// Function AJAX impot posts
+    		add_action( 'wp_ajax_import_posts', array( $this, 'import_posts' ) );
+    		add_action( 'wp_ajax_nopriv_import_posts', array( $this, 'import_posts' ) );
 		}
 
 		/**
@@ -67,25 +74,82 @@
 		}
 
 		/**
+		 * Load scripts js and styles css
+		 */
+		public function enqueue_scripts() {
+			// variables for main.js
+			$params = array( 'ajaxUrl' => admin_url( 'admin-ajax.php' ) );
+
+			// Load main CSS file 
+			wp_enqueue_style( self::$plugin_slug . '_css_main', plugins_url( 'assets/css/main.css', __FILE__ ), array(), null, 'all' );
+			
+			// Load main JS file
+			wp_enqueue_script( self::$plugin_slug . '_js_main', plugins_url( 'assets/js/main.js', __FILE__ ), array( 'jquery' ), null, true );
+
+			// WP Localize Script pass variables for main.js
+			wp_localize_script( self::$plugin_slug . '_js_main', 'sale_post_variables', $params );
+		}
+
+		/**
 		 * Add Menu Page
 		 * 
 		 * @return void
 		 */
 		public function add_menu_page() {
-			add_menu_page( 'WP API JSON Import', 'WP API JSON Import', 'manage_options', self::$plugin_slug, array( $this, 'import_posts' ), '', 6 );
+			add_menu_page( 'WP API JSON Import', 'WP API JSON Import', 'manage_options', self::$plugin_slug, array( $this, 'import_posts_view' ), '', 6 );
 		}
 
 		/**
 		 * Page menu import posts
 		 */
-		public function import_posts() {
+		public function import_posts_view() {
 			echo '<div class="wrap">';
 				echo '<h2>' . __( 'WP API JSON Import', self::$plugin_slug ) . '</h2>';
 				echo '<p>' . __( 'Enter the url\'s, separated by commas, to import.', self::$plugin_slug ) . '</p>';
-				echo '<hr />';
-				echo '<textarea name=" ' . self::$plugin_slug . '_urls" class="' . self::$plugin_slug . '_textarea"></textarea>';
-				echo '<input type="submit" class="' . self::$plugin_slug . '_botao">';
+				echo '<textarea name="' . self::$plugin_slug . '_urls" rows="5" cols="40" class="' . self::$plugin_slug . '_textarea wp-editor-area"></textarea>';
+				echo '<input type="submit" class="' . self::$plugin_slug . '_botao button button-primary">';
+				
+				echo '<div class="' . self::$plugin_slug . '_wraper_posts_imports">';
+					echo '<hr />';
+					echo '<h3>' . __( 'Posts Imported', self::$plugin_slug ) . '</h3>';
+					echo '<div class="' . self::$plugin_slug . '_posts_import"></div>';
+				echo '</div>';
+
 			echo '</div>';
+		}
+
+		/**
+		 * Import Posts JSON
+		 */
+		public function import_posts() {
+			$return = '';
+			$message = '';
+
+			// Get and sanitize data input
+			$urls = sanitize_text_field( $_GET['urls'] );
+
+			// Get json and converte array
+			$posts = json_decode( file_get_contents( $urls ), true );
+			
+			// iterator count posts
+			$i = 0;
+
+			// loop in posts return
+			if( count( $posts ) ){
+				foreach( $posts as $post ) {
+					if ( $i < 2 ) {
+						$return .= '<p>' . $post['title'] . '</p>';
+					}
+					$i++;
+				}
+			}
+
+			if ( empty( $return ) )
+				$message = 'No post found';
+
+			$response = array( 'status' => 1, 'message' => $return );
+			echo json_encode( $response );
+			die();
 		}
 	}
 
