@@ -3,7 +3,7 @@
     	// Get ajax URL
     	var ajax_url = sale_post_variables.ajaxUrl;
 
-    	$(".wpapijson-import_botao").on("click", function(){
+    	/*$(".wpapijson-import_botao").on("click", function(){
     		var urls = $(".wpapijson-import_textarea").val();
     		if( urls != "" ) {
     			$.get( ajax_url, {
@@ -15,7 +15,7 @@
 					$(".wpapijson-import_posts_import").html( data.message );
 				}, "json");
     		}
-    	});
+    	});*/
 
 
     });

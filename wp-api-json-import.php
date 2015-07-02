@@ -59,9 +59,9 @@
 
 
     		// Load Importer API
-			require_once ABSPATH . 'wp-admin/includes/import.php';
-			$GLOBALS['wp_rest_import'] = new WP_API_JSON_Import();
-    		register_importer('wpapijsonimport', __('WP API JSON Import', 'wpapijson-import'), __('Import links in OPML format.', 'wpapijson-import'), array($GLOBALS['wp_rest_import'], 'dispatch'));
+			//require_once ABSPATH . 'wp-admin/includes/import.php';
+			//$GLOBALS['wp_rest_import'] = new WP_API_JSON_Import();
+    		//register_importer('wpapijsonimport', __('WP API JSON Import', 'wpapijson-import'), __('Import links in OPML format.', 'wpapijson-import'), array($GLOBALS['wp_rest_import'], 'dispatch'));
 		}
 
 		/**
@@ -75,52 +75,6 @@
 				self::$instance = new self;
 			}
 			return self::$instance;
-		}
-
-		/**
-		 * Fired when the plugin is activated.
-		 *
-		 * @param  boolean $network_wide True if WPMU superadmin uses
-		 *                               "Network Activate" action, false if
-		 *                               WPMU is disabled or plugin is
-		 *                               activated on an individual blog.
-		 *
-		 * @return void
-		 */
-		public static function activate( $network_wide ) {
-			if ( function_exists( 'is_multisite' ) && is_multisite() ) {
-				if ( $network_wide  ) {
-
-					// Get all blog ids
-					$blog_ids = self::get_blog_ids();
-
-					foreach ( $blog_ids as $blog_id ) {
-						switch_to_blog( $blog_id );
-						self::single_activate();
-					}
-
-					restore_current_blog();
-				} else {
-					self::single_activate();
-				}
-			} else {
-				self::single_activate();
-			}
-		}
-
-		/**
-		 * Fired when a new site is activated with a WPMU environment.
-		 *
-		 * @param    int    $blog_id    ID of the new blog.
-		 */
-		public function activate_new_site( $blog_id ) {
-			if ( 1 !== did_action( 'wpmu_new_blog' ) ) {
-				return;
-			}
-
-			switch_to_blog( $blog_id );
-			self::single_activate();
-			restore_current_blog();
 		}
 
 		/**
@@ -179,8 +133,12 @@
 				echo '<h2>' . __( 'WP API JSON Import', self::$plugin_slug ) . '</h2>';
 				echo '<p>' . __( 'Enter the url\'s, separated by commas, to import.', self::$plugin_slug ) . '</p>';
 
+				//settings_fields( 'import_posts_view-settings' );
+				//do_settings_sections( 'import_posts_view-settings' );
+				echo '<form action="options.php" method="post">';
 				echo '<textarea name="' . self::$plugin_slug . '_urls" rows="5" cols="40" class="' . self::$plugin_slug . '_textarea wp-editor-area"></textarea>';
 				echo '<input type="submit" class="' . self::$plugin_slug . '_botao button button-primary">';
+				echo '</form>';
 
 				echo '<div class="' . self::$plugin_slug . '_wraper_posts_imports">';
 					echo '<hr />';
@@ -227,6 +185,8 @@
 
 	add_action( 'plugins_loaded', array( 'WP_API_JSON_Import', 'get_instance' ), 0 );
 
+	// Activate plugin when new blog is added.
+	register_activation_hook( __FILE__ , array( 'WP_API_JSON_Import', 'single_activate' ) );
 
 
 
