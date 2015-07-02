@@ -143,7 +143,7 @@
 			if ( ! current_user_can( 'activate_plugins' ) ) {
 				return;
 			}
-			add_option( 'wpapijson_import', $options );
+			add_option( 'wpapijson-import_urls', $options );
 			add_option( 'wpapijson_import_version', self::VERSION );
 		}
 
@@ -164,11 +164,12 @@
 				echo '<h2>' . __( 'WP API JSON Import', self::$plugin_slug ) . '</h2>';
 				echo '<p>' . __( 'Enter the url\'s, separated by commas, to import.', self::$plugin_slug ) . '</p>';
 
-				//settings_fields( 'import_posts_view-settings' );
-				//do_settings_sections( 'import_posts_view-settings' );
+				settings_fields( 'wpapijson_import-settings' );
+				do_settings_sections( 'wpapijson_import-settings' );
 				echo '<form action="options.php" method="post">';
-				echo '<textarea name="' . self::$plugin_slug . '_urls" rows="5" cols="40" class="' . self::$plugin_slug . '_textarea wp-editor-area"></textarea>';
-				echo '<input type="submit" class="' . self::$plugin_slug . '_botao button button-primary">';
+				echo '<textarea name="' . self::$plugin_slug . '_urls" rows="5" cols="40" class="' . self::$plugin_slug . '_textarea wp-editor-area">'.get_option('wpapijson-import_urls').'</textarea>';
+				submit_button();
+				//echo '<input type="submit" class="' . self::$plugin_slug . '_botao button button-primary">';
 				echo '</form>';
 
 				echo '<div class="' . self::$plugin_slug . '_wraper_posts_imports">';
@@ -178,7 +179,9 @@
 				echo '</div>';
 			echo '</div>';
 		}
-
+		public function update_extra_post_info() {
+ 			register_setting( 'wpapijson_import-settings', 'wpapijson-import_urls' );
+		}
 		/**
 		 * Import Posts JSON
 		 */
@@ -218,30 +221,4 @@
 	register_activation_hook( __FILE__ , array( 'WP_API_JSON_Import', 'activate' ) );
 
 	add_action( 'plugins_loaded', array( 'WP_API_JSON_Import', 'get_instance' ), 0 );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
