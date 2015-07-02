@@ -103,6 +103,37 @@
 			wp_localize_script( self::$plugin_slug . '_js_main', 'sale_post_variables', $params );
 		}
 
+		/**
+		 * Fired when the plugin is activated.
+		 *
+		 * @param  boolean $network_wide True if WPMU superadmin uses
+		 *                               "Network Activate" action, false if
+		 *                               WPMU is disabled or plugin is
+		 *                               activated on an individual blog.
+		 *
+		 * @return void
+		 */
+		public static function activate( $network_wide ) {
+			if ( function_exists( 'is_multisite' ) && is_multisite() ) {
+				if ( $network_wide  ) {
+
+					// Get all blog ids
+					$blog_ids = self::get_blog_ids();
+
+					foreach ( $blog_ids as $blog_id ) {
+						switch_to_blog( $blog_id );
+						self::single_activate();
+					}
+
+					restore_current_blog();
+				} else {
+					self::single_activate();
+				}
+			} else {
+				self::single_activate();
+			}
+		}
+
 		 /**
 		 * Fired for each blog when the plugin is activated.
 		 *
@@ -183,10 +214,10 @@
 		}
 	}
 
-	add_action( 'plugins_loaded', array( 'WP_API_JSON_Import', 'get_instance' ), 0 );
-
 	// Activate plugin when new blog is added.
-	register_activation_hook( __FILE__ , array( 'WP_API_JSON_Import', 'single_activate' ) );
+	register_activation_hook( __FILE__ , array( 'WP_API_JSON_Import', 'activate' ) );
+
+	add_action( 'plugins_loaded', array( 'WP_API_JSON_Import', 'get_instance' ), 0 );
 
 
 

@@ -1,6 +1,6 @@
 # Plugin WP API JSON Import #
 
-Plugin WordPress para importar posts de um ou mais sites através da api REST gerada pelo plugin [json rest api](https://wordpress.org/plugins/json-rest-api/)
+Plugin WordPress para importar posts de um ou mais sites através da API REST gerada pelo plugin [json rest api](https://wordpress.org/plugins/json-rest-api/)
 
 ## Quer colaborar? ##
 
