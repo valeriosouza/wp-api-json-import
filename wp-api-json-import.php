@@ -164,9 +164,9 @@
 				echo '<h2>' . __( 'WP API JSON Import', self::$plugin_slug ) . '</h2>';
 				echo '<p>' . __( 'Enter the url\'s, separated by commas, to import.', self::$plugin_slug ) . '</p>';
 
+				echo '<form action="options.php" method="post">';
 				settings_fields( 'wpapijson_import-settings' );
 				do_settings_sections( 'wpapijson_import-settings' );
-				echo '<form action="options.php" method="post">';
 				echo '<textarea name="' . self::$plugin_slug . '_urls" rows="5" cols="40" class="' . self::$plugin_slug . '_textarea wp-editor-area">'.get_option('wpapijson-import_urls').'</textarea>';
 				submit_button();
 				//echo '<input type="submit" class="' . self::$plugin_slug . '_botao button button-primary">';
