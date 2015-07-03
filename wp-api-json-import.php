@@ -56,6 +56,9 @@
 			// Add Register
 			add_action( 'admin_init', array( $this, 'update_wpapijson_import') );
 
+			// Run Import 
+			add_action('my_hourly_event', array( $this, 'import_posts') );
+
 			// Function AJAX impot posts
     		add_action( 'wp_ajax_import_posts', array( $this, 'import_posts' ) );
     		add_action( 'wp_ajax_nopriv_import_posts', array( $this, 'import_posts' ) );
@@ -193,8 +196,8 @@
 			$message = '';
 
 			// Get and sanitize data input
-			$urls = sanitize_text_field( $_GET['urls'] );
-
+			$urls = sanitize_text_field(self::$plugin_slug .'_urls' );
+			print_r($urls);
 			// Get json and converte array
 			$posts = json_decode( file_get_contents( $urls ), true );
 			
@@ -216,12 +219,18 @@
 
 			$response = array( 'status' => 1, 'message' => $return );
 			echo json_encode( $response );
+			echo "string";
 			die();
+		}
+
+		public function schedule() {
+			wp_schedule_event(time(), 'hourly', 'my_hourly_event');
 		}
 	}
 
 	// Activate plugin when new blog is added.
 	register_activation_hook( __FILE__ , array( 'WP_API_JSON_Import', 'activate' ) );
+	register_activation_hook( __FILE__ , array( 'WP_API_JSON_Import', 'schedule' ));
 
 	add_action( 'plugins_loaded', array( 'WP_API_JSON_Import', 'get_instance' ), 0 );
 
