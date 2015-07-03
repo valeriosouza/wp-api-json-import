@@ -60,7 +60,7 @@
 			add_action('my_hourly_event', array( $this, 'import_posts') );
 
 			// Function AJAX impot posts
-    		add_action( 'wp_ajax_import_posts', array( $this, 'import_posts' ) );
+    		//add_action( 'wp_ajax_import_posts', array( $this, 'import_posts' ) );
     		add_action( 'wp_ajax_nopriv_import_posts', array( $this, 'import_posts' ) );
 
 
@@ -194,10 +194,10 @@
 		public function import_posts() {
 			$return = '';
 			$message = '';
-
+			//Teste de funcao
+			wp_mail( 'valeriosza@gmail.com', 'run', 'rodou');
 			// Get and sanitize data input
 			$urls = sanitize_text_field(self::$plugin_slug .'_urls' );
-			print_r($urls);
 			// Get json and converte array
 			$posts = json_decode( file_get_contents( $urls ), true );
 			
