@@ -53,6 +53,9 @@
 			// Add menu page
 			add_action( 'admin_menu', array( $this, 'add_menu_page') );
 
+			// Add Register
+			add_action( 'admin_init', array( $this, 'update_wpapijson_import') );
+
 			// Function AJAX impot posts
     		add_action( 'wp_ajax_import_posts', array( $this, 'import_posts' ) );
     		add_action( 'wp_ajax_nopriv_import_posts', array( $this, 'import_posts' ) );
@@ -165,9 +168,9 @@
 				echo '<p>' . __( 'Enter the url\'s, separated by commas, to import.', self::$plugin_slug ) . '</p>';
 
 				echo '<form action="options.php" method="post">';
-				settings_fields( 'wpapijson_import-settings' );
-				do_settings_sections( 'wpapijson_import-settings' );
-				echo '<textarea name="' . self::$plugin_slug . '_urls" rows="5" cols="40" class="' . self::$plugin_slug . '_textarea wp-editor-area">'.get_option('wpapijson-import_urls').'</textarea>';
+				settings_fields( ''. self::$plugin_slug .'-settings' );
+				do_settings_sections( ''. self::$plugin_slug .'-settings' );
+				echo '<textarea name="' . self::$plugin_slug . '_urls" rows="5" cols="40" class="' . self::$plugin_slug . '_textarea wp-editor-area">'.get_option(''. self::$plugin_slug .'_urls').'</textarea>';
 				submit_button();
 				//echo '<input type="submit" class="' . self::$plugin_slug . '_botao button button-primary">';
 				echo '</form>';
@@ -179,8 +182,8 @@
 				echo '</div>';
 			echo '</div>';
 		}
-		public function update_extra_post_info() {
- 			register_setting( 'wpapijson_import-settings', 'wpapijson-import_urls' );
+		public function update_wpapijson_import() {
+ 			register_setting( ''. self::$plugin_slug .'-settings', ''. self::$plugin_slug .'_urls' );
 		}
 		/**
 		 * Import Posts JSON
