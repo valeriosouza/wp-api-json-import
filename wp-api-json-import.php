@@ -3,16 +3,16 @@
 	 * Plugin Name: WP API JSON Import
 	 * Plugin URI:
 	 * Description:
-	 * Author: valeriosza, leobaiano
-	 * Author URI: 
-	 * Version: 0.0.1
+	 * Author: valeriosza, leobaiano, nicholas_io
+	 * Author URI:
+	 * Version: 0.0.2
 	 * License: GPLv2 or later
 	 * Text Domain: wpapijson-import
  	 * Domain Path: /languages/
 	 */
 	if ( ! defined( 'ABSPATH' ) )
 		exit; // Exit if accessed directly.
-	
+
 	/**
 	 * WP API JSON Import
 	 *
@@ -25,11 +25,11 @@
 		 *
 		 * @var string
 		 */
-		const VERSION = '1.0.0';
+		const VERSION = '0.0.2';
 
 		/**
 		 * Plugin Slug
-		 * @var strng
+		 * @var string
 		 */
 		public static $plugin_slug = 'wpapijson-import';
 
@@ -39,6 +39,27 @@
 		 * @var object
 		 */
 		protected static $instance = null;
+
+		/**
+		 * Holds the name of the settings section
+		 *
+		 * @var string
+		 */
+		protected $settings_section;
+
+		/**
+		 * Holds the array of saved options
+		 *
+		 * @var string
+		 */
+		protected $options = array();
+
+		/**
+		 * Holds options name under settings api
+		 *
+		 * @var string
+		 */
+		protected $option_name;
 
 		/**
 		 * Initialize the plugin
@@ -54,14 +75,29 @@
 			add_action( 'admin_menu', array( $this, 'add_menu_page') );
 
 			// Add Register
-			add_action( 'admin_init', array( $this, 'update_wpapijson_import') );
+			add_action( 'admin_init', array( $this, 'plugin_options') );
 
-			// Run Import 
-			add_action('my_hourly_event', array( $this, 'import_posts') );
+			// Run Import
+			add_action( 'my_hourly_event', array( $this, 'import_posts') );
 
 			// Function AJAX impot posts
     		//add_action( 'wp_ajax_import_posts', array( $this, 'import_posts' ) );
     		add_action( 'wp_ajax_nopriv_import_posts', array( $this, 'import_posts' ) );
+
+    		$this->settings_section = self::$plugin_slug . '-general-section';
+    		$this->option_name 		= self::$plugin_slug . '-settings';
+    		$this->options 			= get_option( $this->option_name );
+
+    		if ( $this->options === false ) {
+    			$this->options = array();
+    		}
+
+    		$this->options = wp_parse_args(
+    			$this->options,
+    			array(
+    				'urls' => ''
+    			)
+    		);
 
 
     		// Load Importer API
@@ -99,9 +135,9 @@
 			// variables for main.js
 			$params = array( 'ajaxUrl' => admin_url( 'admin-ajax.php' ) );
 
-			// Load main CSS file 
+			// Load main CSS file
 			wp_enqueue_style( self::$plugin_slug . '_css_main', plugins_url( 'assets/css/main.css', __FILE__ ), array(), null, 'all' );
-			
+
 			// Load main JS file
 			wp_enqueue_script( self::$plugin_slug . '_js_main', plugins_url( 'assets/js/main.js', __FILE__ ), array( 'jquery' ), null, true );
 
@@ -149,17 +185,29 @@
 			if ( ! current_user_can( 'activate_plugins' ) ) {
 				return;
 			}
-			add_option( 'wpapijson-import_urls', $options );
-			add_option( 'wpapijson_import_version', self::VERSION );
+
+			if ( get_option('wpapijson-import_urls') !== false ) {
+				update_option( 'wpapijson-import_urls',  array() );
+			}
+
+			update_option( 'wpapijson_import_version', self::VERSION );
 		}
 
 		/**
 		 * Add Menu Page
-		 * 
+		 *
 		 * @return void
 		 */
 		public function add_menu_page() {
-			add_menu_page( 'WP API JSON Import', 'WP API JSON Import', 'manage_options', self::$plugin_slug, array( $this, 'import_posts_view' ), '', 6 );
+			add_management_page(
+				'WP API JSON Import',
+				'WP API JSON Import',
+				'manage_options',
+				self::$plugin_slug,
+				array( $this, 'import_posts_view' ),
+				'',
+				6
+			);
 		}
 
 		/**
@@ -167,15 +215,11 @@
 		 */
 		public function import_posts_view() {
 			echo '<div class="wrap">';
-				echo '<h2>' . __( 'WP API JSON Import', self::$plugin_slug ) . '</h2>';
-				echo '<p>' . __( 'Enter the url\'s, separated by commas, to import.', self::$plugin_slug ) . '</p>';
-
+				echo '<h2>' . esc_html( get_admin_page_title() ) . '</h2>';
 				echo '<form action="options.php" method="post">';
-				settings_fields( ''. self::$plugin_slug .'-settings' );
-				do_settings_sections( ''. self::$plugin_slug .'-settings' );
-				echo '<textarea name="' . self::$plugin_slug . '_urls" rows="5" cols="40" class="' . self::$plugin_slug . '_textarea wp-editor-area">'.get_option(''. self::$plugin_slug .'_urls').'</textarea>';
-				submit_button();
-				//echo '<input type="submit" class="' . self::$plugin_slug . '_botao button button-primary">';
+					settings_fields( $this->option_name );
+					do_settings_sections( self::$plugin_slug );
+					submit_button();
 				echo '</form>';
 
 				echo '<div class="' . self::$plugin_slug . '_wraper_posts_imports">';
@@ -185,9 +229,47 @@
 				echo '</div>';
 			echo '</div>';
 		}
-		public function update_wpapijson_import() {
- 			register_setting( ''. self::$plugin_slug .'-settings', ''. self::$plugin_slug .'_urls' );
+
+		/**
+		 *	Defines the settings fo the plugins
+		 */
+		public function plugin_options() {
+			if ( false == get_option( $this->option_name ) ) {
+				add_option( $this->option_name );
+			}
+
+			add_settings_section(
+				$this->settings_section,
+				__( 'Main Settings', self::$plugin_slug),
+				array( $this, 'general_settings_section' ),
+				self::$plugin_slug
+			);
+
+			add_settings_field(
+				'urls',
+				__( "URL's", self::$plugin_slug ),
+				array( $this, 'urls_field' ),
+				self::$plugin_slug,
+				$this->settings_section
+			);
+
+ 			register_setting(
+ 				$this->option_name,
+ 				$this->option_name
+ 			);
 		}
+
+		public function general_settings_section( $args ) {
+			//echo __( '<p>General Settings</p>', self::$plugin_slug );
+		}
+
+		public function urls_field( $args ) {
+			?>
+			<textarea class="widefat" id="urls" rows="7" name="<?php echo $this->option_name; ?>[urls]"><?php echo $this->options['urls']; ?></textarea>
+			<label for="urls"><p>  <?php _e( 'Enter the url\'s, separated by commas in order to import.', self::$plugin_slug ) ?> </p></label>
+			<?php
+		}
+
 		/**
 		 * Import Posts JSON
 		 */
@@ -197,10 +279,10 @@
 			//Teste de funcao
 			wp_mail( 'valeriosza@gmail.com', 'run', 'rodou');
 			// Get and sanitize data input
-			$urls = sanitize_text_field(self::$plugin_slug .'_urls' );
+			$urls = sanitize_text_field( $this->options['url'] );
 			// Get json and converte array
 			$posts = json_decode( file_get_contents( $urls ), true );
-			
+
 			// iterator count posts
 			$i = 0;
 
@@ -223,7 +305,7 @@
 			die();
 		}
 
-		public function schedule() {
+		public static function schedule() {
 			wp_schedule_event(time(), 'hourly', 'my_hourly_event');
 		}
 	}
@@ -233,4 +315,3 @@
 	register_activation_hook( __FILE__ , array( 'WP_API_JSON_Import', 'schedule' ));
 
 	add_action( 'plugins_loaded', array( 'WP_API_JSON_Import', 'get_instance' ), 0 );
-
