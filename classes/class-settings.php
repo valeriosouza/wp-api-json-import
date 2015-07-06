@@ -90,19 +90,48 @@ class WP_API_JSON_Import_Settings {
 	 * Page menu import posts
 	 */
 	public function import_posts_view() {
-		echo '<div class="wrap">';
-			echo '<h2>' . esc_html( get_admin_page_title() ) . '</h2>';
-			echo '<form action="options.php" method="post">';
-				settings_fields( $this->option_name );
-				do_settings_sections( $this->plugin_slug );
-				submit_button();
-			echo '</form>';
+		// Create tabs current class.
+		$tab_settings = '';
+		$tab_import = '';
+		$current_tab = '';
+		if( !isset( $_GET['tab'] ) ) {
+			$tab_settings = ' nav-tab-active';
+			$current_tab = 'settings';
+		} else if ( $_GET['tab'] == 'settings' ) {
+			$tab_settings = ' nav-tab-active';
+			$current_tab = 'settings';
+		} else {
+			$tab_import = ' nav-tab-active';
+			$current_tab = 'import';
+		}
 
-			echo '<div class="' . $this->plugin_slug . '_wraper_posts_imports">';
-				echo '<hr />';
-				echo '<h3>' . __( 'Posts Imported', $this->plugin_slug ) . '</h3>';
-				echo '<div class="' . $this->plugin_slug . '_posts_import"></div>';
-			echo '</div>';
+		echo '<div class="wrap">';
+			echo '<h2 class="nav-tab-wrapper">';
+				echo '<a href="tools.php?page=wpapijson-import&amp;tab=settings" class="nav-tab' . $tab_settings . '">' . __( 'Settings', $this->plugin_slug ) . '</a>';
+				echo '<a href="tools.php?page=wpapijson-import&amp;tab=import" class="nav-tab' . $tab_import . '">' . __( 'Import Posts', $this->plugin_slug ) . '</a>';
+			echo '</h2>';
+
+			echo '<h2>' . esc_html( get_admin_page_title() ) . '</h2>';
+
+			if ( $current_tab == 'settings' ) {
+				echo '<form action="options.php" method="post">';
+					settings_fields( $this->option_name );
+					do_settings_sections( $this->plugin_slug );
+					submit_button();
+				echo '</form>';
+			} else {
+				if ( !empty( $this->options['urls'] ) ) {
+					echo '<p>' . __( 'Click the button to import the posts now.', $this->plugin_slug ) . '</p>';
+					echo '<input type="submit" class="button button-primary ' . $this->plugin_slug . '_botao">';
+				} else {
+					echo '<p>' . __( 'No url registered, go the the tab <a href="tools.php?page=wpapijson-import&amp;tab=settings">settings</a> and sign at least one url to import posts.', $this->plugin_slug ) . '</p>';
+				}
+				echo '<div class="' . $this->plugin_slug . '_wraper_posts_imports">';
+					echo '<hr />';
+					echo '<h3>' . __( 'Posts Imported', $this->plugin_slug ) . '</h3>';
+					echo '<div class="' . $this->plugin_slug . '_posts_import"></div>';
+				echo '</div>';
+			}
 		echo '</div>';
 	}
 

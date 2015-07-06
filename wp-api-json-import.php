@@ -47,6 +47,20 @@ class WP_API_JSON_Import {
 	 */
 	protected $settings;
 
+	/**
+	 * Holds the array of saved options
+	 *
+	 * @var string
+	 */
+	protected $options = array();
+
+	/**
+	 * Holds options name under settings api
+	 *
+	 * @var string
+	 */
+	protected $option_name;
+
 
 	/**
 	 * Initialize the plugin
@@ -62,10 +76,13 @@ class WP_API_JSON_Import {
 		add_action( 'my_hourly_event', array( $this, 'import_posts') );
 
 		// Function AJAX impot posts
-		//add_action( 'wp_ajax_import_posts', array( $this, 'import_posts' ) );
+		add_action( 'wp_ajax_import_posts', array( $this, 'import_posts' ) );
 		add_action( 'wp_ajax_nopriv_import_posts', array( $this, 'import_posts' ) );
 
 		$this->settings = new WP_API_JSON_Import_Settings( self::$plugin_slug );
+
+		$this->option_name 	= self::$plugin_slug . '-settings';
+		$this->options 		= get_option( $this->option_name );
 
 		// Load Importer API
 		//require_once ABSPATH . 'wp-admin/includes/import.php';
@@ -166,32 +183,35 @@ class WP_API_JSON_Import {
 	public function import_posts() {
 		$return = '';
 		$message = '';
-		//Teste de funcao
-		wp_mail( 'valeriosza@gmail.com', 'run', 'rodou');
-		// Get and sanitize data input
-		$urls = sanitize_text_field( $this->options['url'] );
-		// Get json and converte array
-		$posts = json_decode( file_get_contents( $urls ), true );
+		$response = array();
 
-		// iterator count posts
-		$i = 0;
+		if ( !empty( $this->options['urls'] ) ) {
+			// Get and sanitize data input
+			$urls = sanitize_text_field( $this->options['urls'] );
 
-		// loop in posts return
-		if( count( $posts ) ){
-			foreach( $posts as $post ) {
-				if ( $i < 2 ) {
+			// Get json and converte array
+			$posts = json_decode( file_get_contents( $urls ), true );
+
+			// iterator count posts
+			$i = 0;
+
+			// loop in posts return
+			if( count( $posts ) ){
+				foreach( $posts as $post ) {
+					if ( $i < 2 )
 					$return .= '<p>' . $post['title'] . '</p>';
+					$i++;
 				}
-				$i++;
 			}
+
+			if ( empty( $return ) )
+				$message = 'No post found';
+
+			$response = array( 'status' => 1, 'message' => $return );
+		} else {
+			$response = array( 'status' => 0, 'message' => __( 'No url registered, go the the tab "settings" and sign at least one url to import posts.', self::$plugin_slug ) );
 		}
-
-		if ( empty( $return ) )
-			$message = 'No post found';
-
-		$response = array( 'status' => 1, 'message' => $return );
 		echo json_encode( $response );
-		echo "string";
 		die();
 	}
 
